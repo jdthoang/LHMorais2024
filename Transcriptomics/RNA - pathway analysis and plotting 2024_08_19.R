@@ -7,7 +7,7 @@
 # load required libraries
 library(DESeq2)
 library(RITAN); library(RITANdata)
-library(dplyr); library(tidyr)
+library(tidyverse)
 library(ggplot2); library(ggtree)
 
 # set WD
@@ -29,8 +29,6 @@ comp = rbind(comp,c('WT_GF', 'WT_SPF'))
 comp = rbind(comp,c('ASO_GF', 'ASO_SPF'))
 
 # set pathway databases to use for analysis
-names(RITANdata::geneset_list)
-grep('SRP',names(geneset_list$KEGG_filtered_canonical_pathways))
 resources = c('KEGG_filtered_canonical_pathways','GO_slim_generic','ReactomePathways')
 
 up_terms = data.frame()
