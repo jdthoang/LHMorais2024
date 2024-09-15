@@ -1,0 +1,135 @@
+---
+title: "Linear Models mt Enzymatic Activities"
+format: html
+editor: visual
+author: "Livia Hecke Morais"
+date: '2024-01-21'
+format: 
+  html:
+    font-family: helvetica neue
+    page-layout: full
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    fig-align: center
+    grid:
+      sidebar-width: 200px
+      body-width: 1100px
+      margin-width: 200px
+      gutter-width: 1.5em
+---view (data)
+---
+
+```{r}
+# Install the required packages if not already installed and load them
+if (!require("easystats")) {install.packages("easystats")}
+if (!require("readxl")) {install.packages("readxl")}
+if (!require("lme4")) {install.packages("lme4")}
+if (!require("plotly")) {install.packages("plotly")}
+if (!require("glue")) {install.packages("glue")}
+if (!require("emmeans")) {install.packages("emmeans")}
+```
+
+```{r}
+# Specify the file path to your Excel file
+excel_file <- file.path("..", "..", "Data", "GFxSPF_ASO", "mtDNA_Columbia.xlsx")
+
+# List the sheet names in the Excel file
+sheet_names <- excel_sheets(excel_file)
+
+# Choose the specific sheet you want to work with (replace 'Sheet1' with the sheet name you need)
+target_sheet_name <- "Sheet1"
+
+# Read the data from the chosen sheet into a data frame
+data <- read_excel(excel_file, sheet = target_sheet_name)
+
+# Specify the column (variable) and the effects we will be working with
+variable = 'Striatum_mtDNAdensity'
+effect_1 = 'Microbiome'
+effect_2 = 'Genotype'
+groups = 'Group'
+
+# Specifying the levels of the factors for plotting
+group_levels = c("WT-SPF", "ASO-SPF", "WT-GF", "ASO-GF")
+data[[groups]] <- factor(data[[groups]], levels = group_levels)
+
+# Specifying palette for plotting
+palette <- c("grey", "black", "#6baed6", "#08519c")
+```
+
+```{r}
+ggplot(data, aes(x = eval(as.name(groups)), y = eval(as.name(variable)))) +
+  geom_boxplot() +
+  geom_point(
+    aes(fill = eval(as.name(groups))),
+    shape = 21,
+    position = position_jitter(0.2), alpha = 0.6) +
+  labs(x = NULL, y = "mtDNA/nDNA/tissue weight") +
+  scale_fill_manual(values=palette, name=groups) +
+  theme_light()
+```
+
+```{r}
+
+# Use the wes_palette function to access the palette
+my_palette <- wes_palette(name = "Darjeeling1", n = 2, type='discrete')
+
+# Now you can use my_palette in your ggplot2 code
+ggplot(data, aes(x = eval(as.name(variable)), color = eval(as.name(effect_1)))) + 
+  stat_ecdf(geom = "step") +
+  facet_grid(~.data[[effect_2]]) +
+  scale_color_manual(values = my_palette) +
+#  theme_abyss() +
+  labs(title = "mtDNAdensity",
+       x = effect_2,
+       y = "mtDNA/nDNA/ tissue weight",
+       color = effect_1)
+```
+
+```{r}
+#| fig-height: 10
+
+outcome <- variable
+vars <- c(effect_1, effect_2)
+
+f <- as.formula(paste(outcome, paste(vars, collapse = " * "), sep = " ~ "))
+
+lv_mod1 <- lm(f, data = data)
+
+summary(lv_mod1)
+report::report(lv_mod1)
+performance::check_model(lv_mod1)
+```
+
+```         
+```
+
+```{r}
+library(emmeans)
+
+
+# View the parameters of the model
+lv_mod1 %>%
+  parameters(summary = TRUE) %>%
+  as.data.frame()
+
+# Estimate contrasts between Genotype and Microbiome with BH adjustment
+lv_mod1_contrasts <- lv_mod1 %>%
+  estimate_contrasts(
+    contrast = c(effect_1, effect_2),
+    p_adjust = "BH",
+    method = "pairwise"
+  )
+
+# View the results
+lv_mod1_contrasts
+
+
+# Save the file with the corrected file path
+write.csv(lv_mod1_contrasts, 
+          file = glue("C:/Users/Livia/Documents/Data Mito/Notebooks Mito Paper/LM_mitochondrial DNA and Enzymactic/lmtDNAdensity -{Sys.Date()}.csv"),
+          quote = FALSE)
+```

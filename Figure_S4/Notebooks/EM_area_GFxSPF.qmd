@@ -1,0 +1,200 @@
+---
+title: "Linear Models Electronic Microscopy of Mitochondria"
+format: html
+editor: visual
+author: "Livia Hecke Morais"
+date: '2023-01-17'
+format: 
+  html:
+    font-family: helvetica neue
+    page-layout: full
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    fig-align: center
+    grid:
+      sidebar-width: 200px
+      body-width: 1100px
+      margin-width: 200px
+      gutter-width: 1.5em
+---
+
+```{r}
+# Install the required packages if not already installed and load them
+if (!require("easystats")) {install.packages("easystats")}
+if (!require("readxl")) {install.packages("readxl")}
+if (!require("lme4")) {install.packages("lme4")}
+if (!require("plotly")) {install.packages("plotly")}
+if (!require("glue")) {install.packages("glue")}
+if (!require("emmeans")) {install.packages("emmeans")}
+```
+
+```{r}
+# Specify the file path to the folder containing the data files
+folder_path <- '../Data/GFxSPF_ASO/EM/'
+
+# Create a list of files to combine into one data frame
+file_list <-  list.files(folder_path, pattern='Maz', full.names=T)
+
+# Specify the sheet names that contain the data of interest
+sheet_name = 'Area (µm²)'
+
+# Specify the column (variable) and the effects we will be working with
+effect_1 = 'Microbiome'
+effect_2 = 'Genotype'
+effect_3 = 'Subject'
+measurement = 'Val'
+
+# Go through the files, extract the data and combine them into one data frame
+area_dat = lapply(file_list, function(i){
+    x = read_excel(i, sheet=sheet_name)
+    x
+})
+area_dat = do.call("rbind.data.frame", area_dat)
+area_dat$Group = paste(area_dat[[effect_2]], area_dat[[effect_1]], sep = "-")
+area_dat[[effect_3]] = as.factor(area_dat[[effect_3]])
+area_dat = rename(area_dat, Val=`Frame 0`)
+
+# Specify the palette
+palette <- c('grey', 'black', '#B6D0E2', '#4682B4')
+
+# Specify the levels of the groups
+group_levels = c("WT-SPF", "ASO-SPF", "WT-GF", "ASO-GF")
+```
+
+```{r}
+# Plotting the raw data
+
+area_dat$Group = factor(area_dat$Group, levels=group_levels)
+
+ggplot(area_dat, 
+       aes(x = interaction(.data[[effect_3]], Group), 
+                     y = .data[[measurement]], 
+                     fill = Group)) +
+  facet_wrap(vars(Group), nrow = 1, scales = "free_x", strip.position = "bottom") +
+  geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+  geom_point(
+    aes(fill = Group, alpha = 0.1),
+    shape = 21,
+    size = 1, 
+    position = position_jitterdodge(jitter.width = 1)) +
+  scale_y_log10(limits = c(0.03, 6))+
+  labs(x = NULL, y = "Area, log10")+
+  scale_fill_manual(values = palette)+
+  scale_colour_manual(values = palette)+
+  theme_light()+
+  theme(panel.spacing = unit(0, "lines"),
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "grey"),
+        panel.grid.major.y =element_line(colour = "grey"),
+        strip.placement = "outside",
+        axis.text.x = element_text(hjust = 1, vjust = 0.5),
+        panel.background = element_rect(fill = 'white', colour = 'white'))+
+  scale_x_discrete(labels= c('1', '2', '3', '4', '5'))
+```
+
+```{r}
+# Plotting the mean ± SEM
+
+summary <- area_dat %>%
+  group_by(Group, .data[[effect_3]]) %>%
+  summarise(mean = mean(.data[[measurement]]), 
+            sd = sd(.data[[measurement]]), 
+            se = sd(.data[[measurement]]) / sqrt(length(.data[[measurement]])))
+
+summary$Group = factor(summary$Group, levels=group_levels)
+ggplot() +
+  geom_bar(data=summary, 
+           aes(x=interaction(.data[[effect_3]], Group), y = mean, fill = Group), 
+           stat="identity", 
+           alpha=0.7, 
+           colour="black") +
+  geom_errorbar(data=summary, 
+                aes(x = interaction(.data[[effect_3]], Group), ymin = mean-se, ymax = mean+se),
+                width = 0.4, 
+                colour = "black", 
+                alpha = 0.9, 
+                linewidth = 0.5)+
+  scale_fill_manual("legend", values = palette)+
+  facet_wrap(vars(Group), nrow = 1, scales = "free_x", strip.position = "bottom") +
+  labs(x = NULL, y = "Area (um^2)")+
+  theme_light()+
+  theme(panel.spacing = unit(0, "lines"),
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "grey"),
+        panel.grid.major.y =element_line(colour = "grey"),
+        strip.placement = "outside",
+        axis.text.x = element_text(hjust = 1, vjust = 0.5),
+        panel.background = element_rect(fill = 'white', colour = 'white'))+
+  scale_x_discrete(labels= c('1', '2', '3', '4', '5'))
+```
+
+```{r}
+# Plotting the ECDFs of the data
+ggplot(area_dat, 
+       aes(x = eval(as.name(measurement)), 
+           color = Group)) + 
+  stat_ecdf(geom = "step",
+            linewidth = 0.7) +
+  scale_color_manual(values = palette) +
+  labs(title = "ECDF of mitochondrial area",
+       y = NULL,
+       x = "Area, um^2") +
+  theme_light()
+```
+
+```{r}
+# Creating the formulae to fit into
+vars <- c(effect_1, effect_2)
+interaction <- paste(vars, collapse = "*")
+rand_eff <- paste(c('(1', 'Subject)'), collapse="|")
+rhs <- paste(c(interaction, rand_eff), collapse = "+")
+formulae <- as.formula(paste(measurement, rhs, sep = "~"))
+
+# Fitting the area data into the generalized linear mixed model
+lv_mod <- lme4::glmer(
+  formulae, 
+  data = area_dat,
+  family = inverse.gaussian(link = '1/mu^2'))
+
+# Assessing the fit
+summary(lv_mod)
+report::report(lv_mod)
+performance::check_model(lv_mod)
+```
+
+```{r}
+lv_mod_params <- lv_mod %>%
+  parameters(summary = TRUE) %>%
+  as.data.frame()
+
+write.csv(lv_mod_params, 
+          file = file.path("..",
+                           "Output", 
+                           "EM_mitochondrial_area", 
+                           glue("mitochonrial_area-{Sys.Date()}-params.csv")),
+          quote = FALSE)
+
+
+lv_mod_contrasts <- lv_mod %>%
+  estimate_contrasts(
+    contrast = c("Genotype", "Microbiome"),
+    p_adjust = "BH",
+    method = "pairwise",
+    pbkrtest.limit = 4640
+    )
+
+# View the results
+lv_mod_contrasts
+
+# Save the .csv file 
+write.csv(lv_mod_contrasts, 
+          file = file.path("..",
+                           "Output", 
+                           "EM_mitochondrial_area", 
+                           glue("mitochonrial_area-{Sys.Date()}.csv")),
+          quote = FALSE)
+```

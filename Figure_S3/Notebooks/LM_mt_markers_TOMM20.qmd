@@ -1,0 +1,129 @@
+---
+title: "Linear Models mt markers"
+format: html
+editor: visual
+author: "Livia Hecke Morais"
+date: '2024-01-21'
+format: 
+  html:
+    font-family: helvetica neue
+    page-layout: full
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    fig-align: center
+    grid:
+      sidebar-width: 200px
+      body-width: 1100px
+      margin-width: 200px
+      gutter-width: 1.5em
+---
+
+```{r}
+# Install the required packages if not already installed and load them
+if (!require("easystats")) {install.packages("easystats")}
+if (!require("readxl")) {install.packages("readxl")}
+if (!require("lme4")) {install.packages("lme4")}
+if (!require("plotly")) {install.packages("plotly")}
+if (!require("glue")) {install.packages("glue")}
+if (!require("emmeans")) {install.packages("emmeans")}
+```
+
+```{r}
+# Specify the file path to your Excel file
+excel_file <- file.path("..", "..", "Data", "GFxSPF_ASO", "WB_Striatum_mitomarkers_GFSPFASO_032524.xlsx")
+
+# Choose the specific sheet you want to work with (replace 'Sheet1' with the sheet name you need)
+target_sheet_name <- "Sheet1"
+
+# Read the data from the chosen sheet into a data frame
+data <- read_excel(excel_file, sheet = target_sheet_name)
+
+# Specify the column (variable) and the effects we will be working with
+variable = 'TOMM20_bactin_relativetoWT'
+effect_1 = 'Microbiome'
+effect_2 = 'Genotype'
+groups = 'Group'
+
+data$Group <- paste(data[[effect_2]], data[[effect_1]], sep='-')
+
+# Specifying the levels of the factors for plotting
+group_levels = c("WT-SPF", "ASO-SPF", "WT-GF", "ASO-GF")
+data[[groups]] <- factor(data[[groups]], levels = group_levels)
+
+# Specifying palette for plotting
+palette <- c("grey", "black", "#6baed6", "#08519c")
+```
+
+```{r}
+ggplot(data, aes(x = eval(as.name(groups)), y = eval(as.name(variable)))) +
+  geom_boxplot() +
+  geom_point(
+    aes(fill = eval(as.name(groups))),
+    shape = 21,
+    position = position_jitter(0.2), alpha = 0.6) +
+  labs(x = NULL, y = "TOMM20_betaactin_relativetoWT") +
+  scale_fill_manual(values=palette, name=groups) +
+  theme_light()
+```
+
+```{r}
+# Plotting the ECDFs of the data for the exploratory data analysis
+ggplot(data, 
+       aes(x = eval(as.name(variable)), 
+           color = eval(as.name(groups)))) + 
+  stat_ecdf(geom = "step") +
+  scale_color_manual(values = palette) +
+  labs(title = "ECDF of signal of TOMM20 β-actin relative to WT",
+       y = NULL,
+       x = "TOMM20 β-actin relative to WT",
+       color = groups) +
+  theme_light()
+```
+
+```{r}
+# Fit the data into a linear model
+effs <- c(effect_1, effect_2)
+formulae <- as.formula(paste(variable, paste(effs, collapse = " * "), sep = " ~ "))
+lv_mod1 <- lm(formulae, data = data)
+
+# Assess the fit
+summary(lv_mod1)
+report::report(lv_mod1)
+performance::check_model(lv_mod1)
+```
+
+```{r}
+# View the parameters of the model and write them as a .csv file
+lv_mod1_params <- lv_mod1 %>%
+  parameters(summary = TRUE) %>%
+  as.data.frame()
+
+write.csv(lv_mod1_params, 
+          file = file.path("..",
+                           "Output", 
+                           glue("lmTOMM20_bactin_relativetoWT-{Sys.Date()}-params.csv")),
+          quote = FALSE)
+
+
+# Estimate contrasts between Genotype and Microbiome with BH adjustment
+lv_mod1_contrasts <- lv_mod1 %>%
+  estimate_contrasts(
+    contrast = c(effect_1, effect_2),
+    p_adjust = "BH",
+    method = "pairwise"
+  )
+
+# View the results
+lv_mod1_contrasts
+
+# Save the .csv file 
+write.csv(lv_mod1_contrasts, 
+          file = file.path("..", 
+                           "Output", 
+                           glue("lmTOMM20_bactin_relativetoWT-{Sys.Date()}.csv")),
+          quote = FALSE)
+```

@@ -1,0 +1,77 @@
+---
+title: "KW_Seahorse_Auranofin"
+format: html
+editor: visual
+---
+
+```{r}
+# Install the required packages if not already installed and load them
+if (!require("dunn.test")) {install.packages("dunn.test")}
+if (!require("readxl")) {install.packages("readxl")}
+if (!require("lme4")) {install.packages("lme4")}
+if (!require("plotly")) {install.packages("plotly")}
+if (!require("glue")) {install.packages("glue")}
+if (!require("emmeans")) {install.packages("emmeans")}
+```
+
+```{r}
+# Specify the file path to your Excel file
+excel_file <- file.path("..", "..", "..", "Data", "Auranofin", "Seahorse_Auranofin_Livia_012324.xlsx")
+
+# Choose the specific sheet you want to work with (replace 'Sheet1' with the sheet name you need)
+target_sheet_name <- "Seahorse_auranofin"
+
+# Read the data from the chosen sheet into a data frame
+data <- read_excel(excel_file, sheet = target_sheet_name)
+
+variable = 'CII_State2'
+```
+
+```{r}
+# Convert 'Group' to a factor if needed
+data$Group <- factor(data$Group, levels = c("WT_GF_V", "ASO_GF_V", "ASO_GF_A"))
+
+# Verify the mapping of 'Group' to the color aesthetic
+palette <- c('#6baed6', '#08519c', '#08519c')
+
+p <-ggplot(data, aes(x = Group, y = CII_State2)) +
+  geom_boxplot() +
+  geom_point(
+         aes(color = Group), 
+         position = position_jitter(0.2), 
+         alpha = 0.5
+         ) + 
+  labs(x = NULL, y = "OCR (pmol/sec)") +
+  scale_colour_manual(values=palette)
+
+p <- p + ggtitle("Seahorse_Auronafin_CII_State2")
+print(p)
+```
+
+```{r}
+# Kruskal-Wallis test
+kruskal_result <- kruskal.test(CII_State2 ~ Group, data = data)
+
+# Write Kruskall-Wallis test results into a .txt file
+kruskwall_output <- file.path("..", "..", "..",  "Output", "Seahorse_Auranofin", "CII", glue("KW_CII_State2-{Sys.Date()}-kruskal.txt"))
+sink(kruskwall_output)
+print(kruskal_result)
+sink()
+
+# If significant, run pairwise Dunn's test
+if (kruskal_result$p.value < 0.05) {
+  pairwise_result <- dunn.test(data$CII_State2, data$Group, method = "BH")
+  print(pairwise_result)
+  
+  # Prepare results for saving
+  pairwise_df <- data.frame(pairwise_result$comparisons, pairwise_result$Z, pairwise_result$P.adjusted)
+  colnames(pairwise_df) <- c("Comparison", "Z", "P_adjusted")
+  
+  # Save the file with the corrected file path
+  file_name <- file.path("..", "..", "..",  "Output", "Seahorse_Auranofin", "CII", glue("KW_CII_State2-{Sys.Date()}-pairwise.txt"))
+  
+  write.csv(pairwise_df, file = file_name, quote = FALSE)
+} else {
+  cat("Kruskal-Wallis test is not significant. No pairwise tests conducted.\n")
+}
+```

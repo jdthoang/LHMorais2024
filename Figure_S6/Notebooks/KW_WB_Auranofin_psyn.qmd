@@ -1,0 +1,97 @@
+---
+title: "WB_psyn_Auranofin"
+format: html
+editor: visual
+author: "Livia Hecke Morais"
+date: '2024-01-21'
+format: 
+  html:
+    font-family: helvetica neue
+    page-layout: full
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    fig-align: center
+    grid:
+      sidebar-width: 200px
+      body-width: 1100px
+      margin-width: 200px
+      gutter-width: 1.5em
+---
+
+```{r}
+# Install the required packages if not already installed and load them
+if (!require("dunn.test")) {install.packages("dunn.test")}
+if (!require("readxl")) {install.packages("readxl")}
+if (!require("plotly")) {install.packages("plotly")}
+if (!require("glue")) {install.packages("glue")}
+if (!require("dplyr")) {install.packages("dplyr")}
+if (!require("ggplot2")) {install.packages("ggplot2")}
+```
+
+```{r}
+# Specify the file path to your Excel file
+excel_file <- file.path("..", "..", "Data", "Auranofin", "Auranofin_WB_052424.xlsx")
+
+# Choose the specific sheet you want to work with 
+# (replace 'Sheet1' with the sheet name you need)
+target_sheet_name <- "Sheet1"
+
+# Read the data from the chosen sheet into a data frame
+data <- read_excel(excel_file, sheet = target_sheet_name)
+```
+
+```{r}
+# Convert 'Group' to a factor if needed
+data$Group <- factor(data$Group, levels = c("WT-GF-V", "ASO-GF-V", "ASO-GF-A"))
+
+# Verify the mapping of 'Group' to the color aesthetic
+palette <- c('#6baed6', '#08519c', '#08519c')
+
+p <-ggplot(data, aes(x = Group, y = ratioWV_psyn)) +
+  geom_boxplot() +
+  geom_point(
+         aes(color = Group), 
+         position = position_jitter(0.2)
+         ) + 
+  labs(x = NULL, y = "Relative expression") +
+  scale_colour_manual(values=palette)
+
+p <- p + ggtitle("Phosphorilated α-Syn relative to the mean phosphorilated α-Syn of WT-GF-V")
+print(p)
+```
+
+```{r}
+# Kruskal-Wallis test
+kruskal_result <- kruskal.test(ratioWV_psyn ~ Group, data = data)
+
+# Write Kruskall-Wallis test results into a .txt file
+kruskwall_output <- file.path("..", "..", "Output", "KW_WB_Auranofin_psyn", glue("KW_WB_Auranofin_psyn-{Sys.Date()}-kruskal.txt"))
+sink(kruskwall_output)
+print(kruskal_result)
+sink()
+
+# If KW is significant, run pairwise Dunn's test
+if (kruskal_result$p.value < 0.05) {
+  pairwise_result <- dunn.test(data$ratioWV_psyn, data$Group, method = "BH")
+  print(pairwise_result)
+  
+  # Prepare results for saving
+  pairwise_df <- data.frame(pairwise_result$comparisons, pairwise_result$Z, pairwise_result$P.adjusted)
+  colnames(pairwise_df) <- c("Comparison", "Z", "P_adjusted")
+  
+  # Corrected file path assembly
+  #file_name <- glue("../Notebooks/Notebooks-{Sys.Date()}.csv")
+
+  pairwise_output <- file.path("..", "..", "Output", "KW_WB_Auranofin_psyn", glue("KW_WB_Auranofin_psyn-{Sys.Date()}-pairwise.csv"))
+  
+  # Save the dataframe
+  write.csv(pairwise_df, file = pairwise_output, row.names = FALSE, quote = FALSE)
+} else {
+  cat("Kruskal-Wallis test is not significant. No pairwise tests conducted.")
+}
+
+```
