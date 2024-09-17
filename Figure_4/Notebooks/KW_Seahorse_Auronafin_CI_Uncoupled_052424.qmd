@@ -1,0 +1,116 @@
+---
+title: "KW_Seahorse_Auranofin"
+format: html
+editor: visual
+author: "Livia Hecke Morais"
+date: '2024-01-22'
+format: 
+  html:
+    font-family: helvetica neue
+    page-layout: full
+    toc: true
+    toc-location: left
+    toc-depth: 5
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    fig-align: center
+    grid:
+      sidebar-width: 200px
+      body-width: 1100px
+      margin-width: 200px
+      gutter-width: 1.5em
+---
+
+```{r}
+# Install the required packages if not already installed and load them
+if (!require("dunn.test")) {install.packages("dunn.test")}
+if (!require("readxl")) {install.packages("readxl")}
+if (!require("lme4")) {install.packages("lme4")}
+if (!require("plotly")) {install.packages("plotly")}
+if (!require("glue")) {install.packages("glue")}
+if (!require("emmeans")) {install.packages("emmeans")}
+```
+
+```{r}
+# Specify the file path to your Excel file
+excel_file <- file.path("..", "..", "Data", "Auranofin", "Seahorse_Auranofin_Livia_012324.xlsx")
+
+# Choose the specific sheet you want to work with (replace 'Sheet1' with the sheet name you need)
+target_sheet_name <- "Seahorse_auranofin"
+
+# Read the data from the chosen sheet into a data frame
+data <- read_excel(excel_file, sheet = target_sheet_name)
+
+variable = 'CI_Uncoupled'
+effect_1 = 'Microbiome'
+effect_2 = 'Genotype'
+groups = 'Group'
+
+# Specifying the levels of the factors for plotting
+group_levels = c("WT_GF_V", "ASO_GF_V", "ASO_GF_A")
+data[[groups]] <- factor(data[[groups]], levels = group_levels)
+
+# Specifying palette for plotting
+palette <- c('#9ecae1', '#2171b5', '#08306b')
+```
+
+```{r}
+ggplot(data, aes(x = eval(as.name(groups)), y = eval(as.name(variable)))) +
+  geom_boxplot() +
+  geom_point(
+    aes(fill = eval(as.name(groups))),
+    shape = 21,
+    position = position_jitter(0.2), 
+    alpha = 0.9) +
+  labs(x = NULL, y = "OCR (pmol/sec)", title ="Seahorse_Auronafin_CI_Uncoupled") +
+  scale_fill_manual(values=palette, name=groups) +
+  theme_light()
+```
+
+```{r}
+ggplot(data, 
+       aes(x = eval(as.name(variable)), 
+           color = eval(as.name(groups)))) + 
+  stat_ecdf(geom = "step") +
+  scale_color_manual(values = palette) +
+  labs(title = "ECDF of OCR",
+       y = NULL,
+       x = "OCR",
+       color = groups) +
+  theme_light()
+```
+
+```{r}
+# Kruskal-Wallis test
+kruskal_result <- kruskal.test(eval(as.name(variable)) ~ eval(as.name(groups)), data = data)
+kruskal_result["data.name"] = paste(variable, " by ", groups)
+
+# Write Kruskall-Wallis test results into a .txt file
+kruskwall_output <- file.path("..", 
+                              "Output", 
+                              glue("KW_CI_Uncoupled-{Sys.Date()}-kruskal.txt"))
+sink(kruskwall_output)
+print(kruskal_result)
+sink()
+
+# If significant, run pairwise Dunn's test
+if (kruskal_result$p.value < 0.05) {
+  pairwise_result <- dunn.test(data[[variable]], data[[groups]], method = "BH")
+  print(pairwise_result)
+  
+
+  # Prepare results for saving
+  pairwise_df <- data.frame(pairwise_result$comparisons, pairwise_result$Z, pairwise_result$P.adjusted)
+  colnames(pairwise_df) <- c("Comparison", "Z", "P_adjusted")
+  
+  # Save the file with the corrected file path
+  file_name <- file.path("..", 
+                         "Output", 
+                         glue("KW_CI_Uncoupled-{Sys.Date()}-pairwise.txt"))
+  
+  write.csv(pairwise_df, file = file_name, quote = FALSE)
+} else {
+  cat("Kruskal-Wallis test is not significant. No pairwise tests conducted.\n")
+}
+```

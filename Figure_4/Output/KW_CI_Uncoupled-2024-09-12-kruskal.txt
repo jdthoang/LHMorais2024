@@ -1,0 +1,6 @@
+
+	Kruskal-Wallis rank sum test
+
+data:  CI_Uncoupled  by  Group
+Kruskal-Wallis chi-squared = 6.5769, df = 2, p-value = 0.03731
+
