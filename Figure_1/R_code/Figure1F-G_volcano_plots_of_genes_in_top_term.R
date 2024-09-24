@@ -6,6 +6,7 @@
 
 # load required packages
 if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")}
 if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")}
 if (!require("EnhancedVolcano", quietly = TRUE)) {BiocManager::install("EnhancedVolcano")}
@@ -13,6 +14,11 @@ if (!require("EnhancedVolcano", quietly = TRUE)) {BiocManager::install("Enhanced
 library("DESeq2") # used for differential gene expression analysis
 library("RITANdata") 
 library("EnhancedVolcano")
+
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 # read in data
 COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 

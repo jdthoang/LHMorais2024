@@ -5,6 +5,12 @@
 #################################################################################
 
 # load required packages
+if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
+if (!require("MAST", quietly = TRUE)) {BiocManager::install("MAST")}
+if (!require("DWLS", quietly = TRUE)) {install.packages("DWLS")} 
+if (!require("Seurat", quietly = TRUE)) {install.packages("Seurat")} 
+
 library(DWLS)
 library(Seurat)
 

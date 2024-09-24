@@ -5,10 +5,14 @@
 #######################################################################
 
 # load required packages
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
+
 library(Rsubread)
 
-# set Working directory
-path = "path"; setwd(path)
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 # get list of fastq files from working directory and name list of outputs
 fastq.files = c(list.files(path = './', pattern = ".fastq.gz$",

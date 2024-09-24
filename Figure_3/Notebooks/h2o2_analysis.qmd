@@ -40,7 +40,7 @@ library("emmeans")
 
 ```{r}
 # Specify the file path to your Excel file
-excel_file <- file.path("..", "..", "Data", "GFxSPF_ASO", "H2O2_GFSPF_Livia_1172024_1.xlsx")
+excel_file <- file.path("Data", "GFxSPF_ASO", "H2O2_GFSPF_Livia_1172024_1.xlsx")
 
 # Read the data from the chosen sheet into a data frame
 data <- read_excel(excel_file)

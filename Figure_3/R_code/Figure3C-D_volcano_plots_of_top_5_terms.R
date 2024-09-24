@@ -5,14 +5,19 @@
 ###############################################
 
 # load required packages
+if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")}
 if (!require("EnhancedVolcano", quietly = TRUE)) {BiocManager::install("EnhancedVolcano")}
 
 library(RITANdata)
 library(EnhancedVolcano)
 
-# set WD
-path = "path"; setwd(path)
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
+
 
 # load mitocarta data
 url <- 'https://personal.broadinstitute.org/scalvo/MitoCarta_Download/MitoPathways3.0.gmx'

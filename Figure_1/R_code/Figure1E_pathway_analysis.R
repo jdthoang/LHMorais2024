@@ -6,6 +6,7 @@
 
 # load required libraries
 if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")}
 if (!require("RITAN", quietly = TRUE)) {BiocManager::install("RITAN")}
 if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")}
@@ -20,8 +21,10 @@ library(tidyverse)
 library(ggplot2)
 library(ggtree)
 
-# set WD
-path = "path"; setwd(path)
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 # read in count matrix and run DESEQ
 COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 

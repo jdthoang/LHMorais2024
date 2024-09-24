@@ -6,6 +6,7 @@
 
 # load required packages
 if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")} 
 if (!require("ComplexHeatmap", quietly = TRUE)) {BiocManager::install("ComplexHeatmap")}
 if (!require("viridis", quietly = TRUE)) {install.packages("viridis")}
@@ -13,6 +14,11 @@ if (!require("viridis", quietly = TRUE)) {install.packages("viridis")}
 library("DESeq2")
 library("ComplexHeatmap")
 library("viridis")
+
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 # read in data
 COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 

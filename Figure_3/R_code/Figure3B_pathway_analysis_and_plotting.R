@@ -8,6 +8,7 @@
 if (!require("RITAN", quietly = TRUE)) {BiocManager::install("RITAN")} 
 if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")} 
 if (!require("tidyverse", quietly = TRUE)) {install.packages("tidyverse")} 
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("ggplot2", quietly = TRUE)) {install.packages("ggplot2")} 
 if (!require("ggtree", quietly = TRUE)) {BiocManager::install("ggtree")} 
 if (!require("cowplot", quietly = TRUE)) {install.packages("cowplot")} 
@@ -16,6 +17,11 @@ library(RITAN); library(RITANdata)
 library(tidyverse)
 library(ggplot2); library(ggtree)
 library(cowplot)
+
+# set the workind directory to the main directory of the repository
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 
 # find files with differentially expressed proteins

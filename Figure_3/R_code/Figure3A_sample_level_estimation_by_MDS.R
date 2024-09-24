@@ -5,7 +5,9 @@
 #########################################################################
 
 # load required libraries
+if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
 if (!require("stringr", quietly = TRUE)) {install.packages("stringr")} 
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("edgeR", quietly = TRUE)) {BiocManager::install("edgeR")} 
 if (!require("car", quietly = TRUE)) {install.packages("car")} 
 
@@ -13,8 +15,10 @@ library(stringr) # used for string manipulation
 library(edgeR) # package required to generate MDS plot
 library(car) # package required for ellipse in MDS plot
 
-# set WD
-path = "path"; setwd(path)
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 # load all data 
 COUNTS = read.csv(file.path("..", "..", "Data", "Proteomics", "protein_counts.csv"), header = T)
@@ -78,7 +82,8 @@ for(condition in unique(group)) {
 }
 
 # initialized PDF to save final plot as PDF
-pdf(paste0(path,'MDS plot with ellipses.pdf'))
+output_filepath = file.path("..", "Output", "Proteomics", "MDS_plot_with_ellipses.pdf")
+pdf(output_filepath)
 
 # set plot parameters
 ylab = paste0(mds$axislabel,' 2 (',round(mds$var.explained[2]*100),'%)')

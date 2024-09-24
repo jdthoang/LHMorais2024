@@ -6,6 +6,7 @@
 
 # load required libraries
 if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("rstudioapi", quietly = TRUE)) {install.packages("rstudioapi")} 
 if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")}
 if (!require("stringr", quietly = TRUE)) {install.packages("stringr")} 
 if (!require("edgeR", quietly = TRUE)) {BiocManager::install("edgeR")} 
@@ -15,6 +16,11 @@ library("DESeq2") # used for differential gene expression analysis
 library("stringr") # used for string manipulation
 library("edgeR") # package required to generate MDS plot
 library("car") # package required for ellipse in MDS plot
+
+# set the working directory to where this script is located
+script_path = rstudioapi::getSourceEditorContext()$path
+workdir_path = dirname(script_path)
+setwd(workdir_path)
 
 # read in count matrix generated from alignment
 COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 
