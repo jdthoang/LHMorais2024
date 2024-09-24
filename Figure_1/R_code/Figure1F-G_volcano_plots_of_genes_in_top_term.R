@@ -5,16 +5,23 @@
 ################################################
 
 # load required packages
-library(DESeq2)
-library(RITANdata)
-library(EnhancedVolcano)
+if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")}
+if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")}
+if (!require("EnhancedVolcano", quietly = TRUE)) {BiocManager::install("EnhancedVolcano")}
 
-# set WD
-path = "path"; setwd(path)
+library("DESeq2") # used for differential gene expression analysis
+library("RITANdata") 
+library("EnhancedVolcano")
 
 # read in data
-COUNTS = read.table("./gene_counts_striatum.tsv", sep = '\t', header = T)
-metadata = read.csv("./metadata_striatum.csv", row.names = 'X')
+COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 
+                    sep = '\t', 
+                    header = T,
+                    row.names = 'X')
+                    
+metadata = read.csv(file.path("..", "..", "Data", "Transcriptomics", "metadata.csv"), 
+                    row.names = 'X')
 
 # diffential gene expression with DESeq2
 dds = DESeq(DESeqDataSetFromMatrix(countData=COUNTS, 
@@ -66,5 +73,7 @@ for(i in 1:4){
                   cutoffLineCol = 'black')
   
   # save volcano plot
-  ggsave(paste0(con1,"_vs_",con2,"_volcano.png"), units = 'in', width = 6, height = 8)
+  filename = paste0(con1,"_vs_",con2,"_volcano.png")
+  filepath = file.path("..", "Output", "Transcriptomics", filename)
+  ggsave(filepath, units = 'in', width = 6, height = 8)
 }

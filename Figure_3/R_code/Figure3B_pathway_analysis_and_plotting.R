@@ -5,16 +5,17 @@
 ############################################################
 
 # load required libraries
-library(RITAN); library(RITANdata)
+library(RITAN)
+library(RITANdata)
 library(tidyverse)
-library(ggplot2); library(ggtree)
+library(ggplot2)
+library(ggtree)
 library(cowplot)
 
-# set WD
-path = "path to DEP files"; setwd(path)
-
 # find files with differentially expressed proteins
-files = list.files(pattern = '.csv')
+filepath = file.path("..", "..", "Data", "Proteomics")
+files = list.files(path = filepath, 
+                   pattern = '.csv')
 
 # read in mitocarta pathways and load into RITAN
 mitopathways = read.delim("path to mitocarta")
@@ -41,6 +42,7 @@ for(i in 1:4){
   }
 
 terms$name[duplicated(terms$name)]
+
 # create dataframes to input values
 GOs = unique(terms$name); nGOs = length(GOs); print(nGOs)
 data = data.frame("GOs" = rep(GOs, 4), 
@@ -96,7 +98,9 @@ ggtree_plot = ggtree(ddgram)
 data$GOs = factor(data$GOs, levels = clust$labels[clust$order])
 data$Condition = factor(data$Condition, levels = unique(data$Condition)[c(1,2,3,4)])
 
-pdf(paste0('proteomics_pathways_both.pdf'), width = 3.47*2.3, height = 6.27*2)
+
+output_filepath = file.path("..", "Output", "Proteomics", "proteomics_pathways_both.pdf")
+pdf(output_filepath, width = 3.47*2.3, height = 6.27*2)
 dotplot = ggplot(data = data, aes(x=Condition, y = GOs, color = logp, size = GeneRatio)) + 
   geom_vline(aes(xintercept = Condition), color = "lightgray", alpha = 0.5) +
   geom_hline(aes(yintercept = GOs), color = "lightgray", alpha = 0.5) +

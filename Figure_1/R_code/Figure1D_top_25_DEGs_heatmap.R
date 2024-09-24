@@ -5,18 +5,24 @@
 ###################################################################
 
 # load required packages
-library(DESeq2)
-library(ComplexHeatmap)
-library(viridis)
+if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")} 
+if (!require("ComplexHeatmap", quietly = TRUE)) {BiocManager::install("ComplexHeatmap")}
+if (!require("viridis", quietly = TRUE)) {install.packages("viridis")}
 
-# set WD
-path = "path"; setwd(path)
+library("DESeq2")
+library("ComplexHeatmap")
+library("viridis")
 
 # read in data
-COUNTS = read.table("./gene_counts_striatum.tsv", sep = '\t')
-CPM = sweep(COUNTS,2,as.numeric(colSums(COUNTS)),FUN="/")*1000000
+COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 
+                    sep = '\t', 
+                    header = T,
+                    row.names = 'X')
+metadata = read.csv(file.path("..", "..", "Data", "Transcriptomics", "metadata.csv"), 
+                    row.names = 'X')
 
-metadata = read.csv("./metadata_striatum.csv", row.names = 'X')
+CPM = sweep(COUNTS,2,as.numeric(colSums(COUNTS)),FUN="/")*1000000
 
 # diffential gene expression with DESeq2
 dds = DESeq(DESeqDataSetFromMatrix(countData=COUNTS, 
@@ -80,7 +86,9 @@ for(i in 1:4){
                  col = viridis(100))
   
   # initialize SVG to save file
-  svg(file=paste0(con1, '_vs_', con2, '_top-25-DEG-heatmap.svg',sep = ""),
+  filename = paste0(con1, '_vs_', con2, '_top-25-DEG-heatmap.svg',sep = "")
+  filepath = file.path("..", "Output", "Transcriptomics", filename)
+  svg(file=filepath,
       width = 3.47*3, height = 6.27*2)
   draw(hmap, heatmap_legend_side = 'left', annotation_legend_side = 'right', row_sub_title_side = 'left',
        padding = unit(c(0.5, 0.5, 0.5, 0.5), "in"))

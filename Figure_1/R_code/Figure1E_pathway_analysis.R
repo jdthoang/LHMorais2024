@@ -5,17 +5,32 @@
 #########################################################
 
 # load required libraries
+if (!require("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+if (!require("DESeq2", quietly = TRUE)) {BiocManager::install("DESeq2")}
+if (!require("RITAN", quietly = TRUE)) {BiocManager::install("RITAN")}
+if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")}
+if (!require("tidyverse", quietly = TRUE)) {install.packages("tidyverse")}
+if (!require("ggplot2", quietly = TRUE)) {install.packages("ggplot2")}
+if (!require("ggtree", quietly = TRUE)) {BiocManager::install("ggtree")}
+
 library(DESeq2)
-library(RITAN); library(RITANdata)
+library(RITAN)
+library(RITANdata)
 library(tidyverse)
-library(ggplot2); library(ggtree)
+library(ggplot2)
+library(ggtree)
 
 # set WD
 path = "path"; setwd(path)
 
 # read in count matrix and run DESEQ
-COUNTS = read.table("./gene_counts_striatum.tsv", sep = '\t', header = T)
-metadata = read.csv("./metadata_striatum.csv",row.names = 'X')
+COUNTS = read.table(file.path("..", "..", "Data", "Transcriptomics", "gene_counts.tsv"), 
+                    sep = '\t', 
+                    header = T,
+                    row.names = 'X')
+
+metadata = read.csv(file.path("..", "..", "Data", "Transcriptomics", "metadata.csv"), 
+                    row.names = 'X')
 
 # diffential gene expression with DESeq2
 dds = DESeq(DESeqDataSetFromMatrix(countData=COUNTS, 
@@ -86,11 +101,11 @@ for(i in 1:4){
 
 # clean up data
 data_up$GeneRatio = as.numeric(data_up$GeneRatio)
-  data_up$p.adjust = as.numeric(data_up$p.adjust)
-  data_up$GeneRatio[data_up$GeneRatio == 0] = NA
+data_up$p.adjust = as.numeric(data_up$p.adjust)
+data_up$GeneRatio[data_up$GeneRatio == 0] = NA
 data_down$GeneRatio = as.numeric(data_down$GeneRatio)
-  data_down$p.adjust = as.numeric(data_down$p.adjust)
-  data_down$GeneRatio[data_down$GeneRatio == 0] = NA
+data_down$p.adjust = as.numeric(data_down$p.adjust)
+data_down$GeneRatio[data_down$GeneRatio == 0] = NA
 
 # log transform q values
 data_up$logq = -log10(data_up$p.adjust)

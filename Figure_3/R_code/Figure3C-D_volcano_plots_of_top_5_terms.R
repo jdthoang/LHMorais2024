@@ -5,6 +5,9 @@
 ###############################################
 
 # load required packages
+if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")}
+if (!require("EnhancedVolcano", quietly = TRUE)) {BiocManager::install("EnhancedVolcano")}
+
 library(RITANdata)
 library(EnhancedVolcano)
 
