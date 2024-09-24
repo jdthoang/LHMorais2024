@@ -5,20 +5,27 @@
 ############################################################
 
 # load required libraries
-library(RITAN)
-library(RITANdata)
+if (!require("RITAN", quietly = TRUE)) {BiocManager::install("RITAN")} 
+if (!require("RITANdata", quietly = TRUE)) {BiocManager::install("RITANdata")} 
+if (!require("tidyverse", quietly = TRUE)) {install.packages("tidyverse")} 
+if (!require("ggplot2", quietly = TRUE)) {install.packages("ggplot2")} 
+if (!require("ggtree", quietly = TRUE)) {BiocManager::install("ggtree")} 
+if (!require("cowplot", quietly = TRUE)) {install.packages("cowplot")} 
+
+library(RITAN); library(RITANdata)
 library(tidyverse)
-library(ggplot2)
-library(ggtree)
+library(ggplot2); library(ggtree)
 library(cowplot)
+
 
 # find files with differentially expressed proteins
 filepath = file.path("..", "..", "Data", "Proteomics")
 files = list.files(path = filepath, 
-                   pattern = '.csv')
+                   pattern = 'dep')
 
 # read in mitocarta pathways and load into RITAN
-mitopathways = read.delim("path to mitocarta")
+url <- 'https://personal.broadinstitute.org/scalvo/MitoCarta_Download/MitoPathways3.0.gmx'
+mitopathways = read.delim(file = url)
 geneset_list$MitoCarta = mitopathways
 resources = c('MitoCarta')
 
@@ -27,8 +34,7 @@ logfcthr = 0.5; pthr = 0.05
 # run pathway analysis to initialize number of unique terms
 for(i in 1:4){
   # find list of DEPs
-  res = read.csv(files[i]); res = res[order(res$p_value),] 
-  res$log2_foldchange = res$log2_foldchange*flip[i]
+  res = read.csv(file.path(filepath, (files[i]))); res = res[order(res$p_value),] 
   DEPs = res[(res$p_value < pthr & !is.na(res$p_value)),]
   DEPs = DEPs[!is.na(DEPs$gene_symbol),]
   rownames(DEPs) = make.unique(DEPs$gene_symbol)
@@ -45,6 +51,7 @@ terms$name[duplicated(terms$name)]
 
 # create dataframes to input values
 GOs = unique(terms$name); nGOs = length(GOs); print(nGOs)
+
 data = data.frame("GOs" = rep(GOs, 4), 
                   "Condition" = rep(files, each = nGOs),
                   "GeneRatio" = '', 
@@ -53,8 +60,7 @@ data = data.frame("GOs" = rep(GOs, 4),
 # rerun and input data into dataframe
 for(i in 1:4){
   # find list of DEPs
-  res = read.csv(files[i]); res = res[order(res$p_value),] 
-  res$log2_foldchange = res$log2_foldchange*flip[i]
+  res = read.csv(file.path(filepath, (files[i]))); res = res[order(res$p_value),] 
   DEPs = res[(res$p_value < pthr & !is.na(res$p_value)),]
   DEPs = DEPs[!is.na(DEPs$gene_symbol),]
   rownames(DEPs) = make.unique(DEPs$gene_symbol)
@@ -97,7 +103,6 @@ ggtree_plot = ggtree(ddgram)
 
 data$GOs = factor(data$GOs, levels = clust$labels[clust$order])
 data$Condition = factor(data$Condition, levels = unique(data$Condition)[c(1,2,3,4)])
-
 
 output_filepath = file.path("..", "Output", "Proteomics", "proteomics_pathways_both.pdf")
 pdf(output_filepath, width = 3.47*2.3, height = 6.27*2)

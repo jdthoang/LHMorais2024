@@ -30,6 +30,13 @@ if (!require("plotly")) {install.packages("plotly")}
 if (!require("glue")) {install.packages("glue")}
 if (!require("dplyr")) {install.packages("dplyr")}
 if (!require("ggplot2")) {install.packages("ggplot2")}
+
+library("dunn.test")
+library("readxl")
+library("plotly")
+library("glue")
+library("dplyr")
+library("ggplot2")
 ```
 
 ```{r}

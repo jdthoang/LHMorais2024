@@ -17,11 +17,12 @@ library(car) # package required for ellipse in MDS plot
 path = "path"; setwd(path)
 
 # load all data 
-COUNTS = read.csv("protein_counts.csv", header = T)
+COUNTS = read.csv(file.path("..", "..", "Data", "Proteomics", "protein_counts.csv"), header = T)
   rownames(COUNTS) = make.unique(COUNTS$symbol, sep = '.')
   COUNTS$symbol = NULL
   COUNTS[is.na(COUNTS)] = 0
-metadata = read.csv("./metadata.csv", row.names = 'X')
+
+#metadata = read.csv("./metadata.csv", row.names = 'X')
   
 metadata = data.frame(matrix(nrow = 16, ncol = 2))
 colnames(metadata) = c('id','condition')

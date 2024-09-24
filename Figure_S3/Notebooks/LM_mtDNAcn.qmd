@@ -20,7 +20,6 @@ format:
       body-width: 1100px
       margin-width: 200px
       gutter-width: 1.5em
----view (data)
 ---
 
 ```{r}
@@ -31,6 +30,13 @@ if (!require("lme4")) {install.packages("lme4")}
 if (!require("plotly")) {install.packages("plotly")}
 if (!require("glue")) {install.packages("glue")}
 if (!require("emmeans")) {install.packages("emmeans")}
+
+library("easystats")
+library("readxl")
+library("lme4")
+library("plotly")
+library("glue")
+library("emmeans")
 ```
 
 ```{r}

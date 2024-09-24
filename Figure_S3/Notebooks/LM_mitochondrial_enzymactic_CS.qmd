@@ -30,6 +30,13 @@ if (!require("lme4")) {install.packages("lme4")}
 if (!require("plotly")) {install.packages("plotly")}
 if (!require("glue")) {install.packages("glue")}
 if (!require("emmeans")) {install.packages("emmeans")}
+
+library("easystats")
+library("readxl")
+library("lme4")
+library("plotly")
+library("glue")
+library("emmeans")
 ```
 
 ```{r}
@@ -43,7 +50,7 @@ target_sheet_name <- "Sheet1"
 data <- read_excel(excel_file, sheet = target_sheet_name)
 
 # Specify the column (variable) and the effects we will be working with
-variable = 'ComplexI'
+variable = 'CS'
 effect_1 = 'Microbiome'
 effect_2 = 'Genotype'
 groups = 'Group'
@@ -63,7 +70,7 @@ ggplot(data, aes(x = eval(as.name(groups)), y = eval(as.name(variable)))) +
     aes(fill = eval(as.name(groups))),
     shape = 21,
     position = position_jitter(0.2), alpha = 0.6) +
-  labs(x = NULL, y = "Mitochondrial complex I activity") +
+  labs(x = NULL, y = "Citrate synthase total activity") +
   scale_fill_manual(values=palette, name=groups) +
   theme_light()
 ```
@@ -75,9 +82,9 @@ ggplot(data,
            color = eval(as.name(groups)))) + 
   stat_ecdf(geom = "step") +
   scale_color_manual(values = palette) +
-  labs(title = "ECDF of mt complex I activity",
+  labs(title = "ECDF of citrate synthase activity",
        y = NULL,
-       x = "Complex I total activity",
+       x = "Citrate synthase total activity",
        color = groups) +
   theme_light()
 ```
@@ -103,7 +110,7 @@ lv_mod1_params <- lv_mod1 %>%
 write.csv(lv_mod1_params, 
           file = file.path("..", 
                            "Output", 
-                           glue("lmNADH-{Sys.Date()}-params.csv")),
+                           glue("lmCS-{Sys.Date()}-params.csv")),
           quote = FALSE)
 
 # Estimate contrasts between Genotype and Microbiome with BH adjustment
@@ -121,6 +128,6 @@ lv_mod1_contrasts
 write.csv(lv_mod1_contrasts, 
           file = file.path("..", 
                            "Output", 
-                           glue("lmNADH-{Sys.Date()}.csv")),
+                           glue("lmCS-{Sys.Date()}.csv")),
           quote = FALSE)
 ```

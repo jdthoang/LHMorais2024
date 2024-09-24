@@ -15,17 +15,24 @@ library(EnhancedVolcano)
 path = "path"; setwd(path)
 
 # load mitocarta data
-mitopathways = read.delim("path to MitoCarta")
+url <- 'https://personal.broadinstitute.org/scalvo/MitoCarta_Download/MitoPathways3.0.gmx'
+mitopathways = read.delim(file = url)
 geneset_list$MitoCarta = mitopathways
 
-# read in DEP
-files = list.files(pattern = '.csv')
+# find and read in files with differentially expressed proteins
+filepath = file.path("..", "..", "Data", "Proteomics")
+files = list.files(path = filepath, 
+                   pattern = 'dep')
 
 logfcthr = 0.5; pthr = 0.05
 # Create the contrast matrix for DE
+
+
 for(i in 1:4){
-  dep = read.csv(files[i])
-  dep$log2_foldchange = dep$log2_foldchange*flip[i]
+  dep = read.csv(file.path(filepath, (files[i])))
+  
+  con1 = unlist(strsplit(files[i], '[_.]+'))[2]
+  con2 = unlist(strsplit(files[i], '[_.]+'))[4]
   
   # set colors for each group
   keyvals = ifelse((dep$log2_foldchange < -logfcthr & dep$p_value < pthr), 'blue',
@@ -64,7 +71,6 @@ for(i in 1:4){
                   axisLabSize = 27)
   
   # save volcano plot
-  #ggsave(paste0(con1,"_vs_",con2,"_top5.svg"), units = 'in', width = 12.5, height = 10.5)
-  #ggsave(paste0(con1,"_vs_",con2,"_top5.png"), units = 'in', width = 12.5, height = 10.5)
-  ggsave(paste0('protein_',con1,"_vs_",con2,".pdf"), units = 'in', width = 12.5, height = 10.5)
+  filename = file.path("..", "Output", "Proteomics", paste0('protein_',con1,"_vs_",con2,".pdf"))
+  ggsave(filename, units = 'in', width = 12.5, height = 10.5)
 }
