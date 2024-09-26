@@ -41,7 +41,7 @@ library("emmeans")
 
 ```{r}
 # Specify the file path to your Excel file
-excel_file <- file.path("..", "..", "..", "Data", "Auranofin", "Seahorse_Auranofin_Livia_012324.xlsx")
+excel_file <- file.path("..", "..", "Data", "Auranofin", "Seahorse_Auranofin_Livia_012324.xlsx")
 
 # Choose the specific sheet you want to work with (replace 'Sheet1' with the sheet name you need)
 target_sheet_name <- "Seahorse_auranofin"
@@ -78,7 +78,9 @@ print(p)
 kruskal_result <- kruskal.test(CII_Uncoupled ~ Group, data = data)
 
 # Write Kruskall-Wallis test results into a .txt file
-kruskwall_output <- file.path("..", "..", "..",  "Output", "Seahorse_Auranofin", "CII", glue("KW_CII_Uncoupled-{Sys.Date()}-kruskal.txt"))
+kruskwall_output <- file.path("..", 
+                              "Output", 
+                              glue("KW_CII_Uncoupled-{Sys.Date()}-kruskal.txt"))
 sink(kruskwall_output)
 print(kruskal_result)
 sink()
@@ -93,7 +95,9 @@ if (kruskal_result$p.value < 0.05) {
   colnames(pairwise_df) <- c("Comparison", "Z", "P_adjusted")
   
   # Save the file with the corrected file path
-  file_name <- file.path("..", "..", "..",  "Output", "Seahorse_Auranofin", "CII", glue("KW_CII_Uncoupled-{Sys.Date()}-pairwise.txt"))
+  file_name <- file.path("..", 
+                         "Output", 
+                         glue("KW_CII_Uncoupled-{Sys.Date()}-pairwise.csv"))
   
   write.csv(pairwise_df, file = file_name, quote = FALSE)
 } else {

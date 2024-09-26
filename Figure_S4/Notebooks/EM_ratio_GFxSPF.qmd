@@ -41,13 +41,13 @@ library("emmeans")
 
 ```{r}
 # Specify the file path to the folder containing the data files
-folder_path <- '../Data/GFxSPF_ASO/EM/'
+folder_path <- file.path("..", "..", "Data", "GFxSPF_ASO", "EM")
 
 # Create a list of files to combine into one data frame
 file_list <-  list.files(folder_path, pattern='Maz', full.names=T)
 
 # Specify the sheet names that contain the data of interest
-sheet_name = 'Area (µm²)'
+sheet_name = 'Aspect Ratio'
 
 # Specify the column (variable) and the effects we will be working with
 effect_1 = 'Microbiome'
@@ -155,10 +155,10 @@ ggplot(area_dat,
 
 ```{r}
 # Creating the formulae to fit into
-vars <- c(effect_1, effect_2)
-interaction <- paste(vars, collapse = "*")
-rand_eff <- paste(c('(1', 'Subject)'), collapse="|")
-rhs <- paste(c(interaction, rand_eff), collapse = "+")
+sum <- paste(effect_1, effect_2, sep = " + ")
+interaction <- paste(effect_1, effect_2, sep = "*")
+rand_eff <- paste("(1", 'Subject)', sep="|")
+rhs <- paste(sum, interaction, rand_eff, sep = " + ")
 formulae <- as.formula(paste(measurement, rhs, sep = "~"))
 
 # Fitting the area data into the generalized linear mixed model
@@ -181,8 +181,7 @@ lv_mod_params <- lv_mod %>%
 write.csv(lv_mod_params, 
           file = file.path("..",
                            "Output", 
-                           "EM_mitochondrial_area", 
-                           glue("mitochonrial_area-{Sys.Date()}-params.csv")),
+                           glue("mitochonrial_ratio-{Sys.Date()}-params.csv")),
           quote = FALSE)
 
 
@@ -201,7 +200,6 @@ lv_mod_contrasts
 write.csv(lv_mod_contrasts, 
           file = file.path("..",
                            "Output", 
-                           "EM_mitochondrial_area", 
-                           glue("mitochonrial_area-{Sys.Date()}.csv")),
+                           glue("mitochonrial_ratio-{Sys.Date()}.csv")),
           quote = FALSE)
 ```

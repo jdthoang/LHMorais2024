@@ -76,7 +76,9 @@ print(p)
 kruskal_result <- kruskal.test(ratioWV_psyn ~ Group, data = data)
 
 # Write Kruskall-Wallis test results into a .txt file
-kruskwall_output <- file.path("..", "..", "Output", "KW_WB_Auranofin_psyn", glue("KW_WB_Auranofin_psyn-{Sys.Date()}-kruskal.txt"))
+kruskwall_output <- file.path("..", 
+                              "Output", 
+                              glue("KW_WB_Auranofin_psyn-{Sys.Date()}-kruskal.txt"))
 sink(kruskwall_output)
 print(kruskal_result)
 sink()
@@ -91,7 +93,9 @@ if (kruskal_result$p.value < 0.05) {
   colnames(pairwise_df) <- c("Comparison", "Z", "P_adjusted")
   
   # Corrected file path assembly
-  pairwise_output <- file.path("..", "..", "Output", "KW_WB_Auranofin_psyn", glue("KW_WB_Auranofin_psyn-{Sys.Date()}-pairwise.csv"))
+  pairwise_output <- file.path("..", 
+                               "Output", 
+                               glue("KW_WB_Auranofin_psyn-{Sys.Date()}-pairwise.csv"))
   
   # Save the dataframe
   write.csv(pairwise_df, file = pairwise_output, row.names = FALSE, quote = FALSE)

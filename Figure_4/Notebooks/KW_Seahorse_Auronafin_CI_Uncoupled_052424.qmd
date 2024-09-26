@@ -114,7 +114,7 @@ if (kruskal_result$p.value < 0.05) {
   # Save the file with the corrected file path
   file_name <- file.path("..", 
                          "Output", 
-                         glue("KW_CI_Uncoupled-{Sys.Date()}-pairwise.txt"))
+                         glue("KW_CI_Uncoupled-{Sys.Date()}-pairwise.csv"))
   
   write.csv(pairwise_df, file = file_name, quote = FALSE)
 } else {

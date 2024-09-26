@@ -89,8 +89,10 @@ ggplot(data,
 
 ```{r}
 # Fit the data into a linear model
-effs <- c(effect_1, effect_2)
-formulae <- as.formula(paste(variable, paste(effs, collapse = " * "), sep = " ~ "))
+sum <- paste(effect_1, effect_2, sep = " + ")
+mult <- paste(effect_1, effect_2, sep = "*")
+rhs <- paste(sum, mult, sep = " + ")
+formulae <- as.formula(paste(variable, rhs, sep = " ~ "))
 lv_mod1 <- lm(formulae, data = data)
 
 # Assess the fit

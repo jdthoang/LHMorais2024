@@ -1,0 +1,6 @@
+
+	Kruskal-Wallis rank sum test
+
+data:  CII_State2 by Group
+Kruskal-Wallis chi-squared = 7.4231, df = 2, p-value = 0.02444
+

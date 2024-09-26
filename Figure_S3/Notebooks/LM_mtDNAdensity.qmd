@@ -79,48 +79,43 @@ ggplot(data, aes(x = eval(as.name(groups)), y = eval(as.name(variable)))) +
 ```
 
 ```{r}
-
-# Use the wes_palette function to access the palette
-my_palette <- wes_palette(name = "Darjeeling1", n = 2, type='discrete')
-
-# Now you can use my_palette in your ggplot2 code
-ggplot(data, aes(x = eval(as.name(variable)), color = eval(as.name(effect_1)))) + 
+ggplot(data, 
+       aes(x = eval(as.name(variable)), 
+           color = eval(as.name(groups)))) + 
   stat_ecdf(geom = "step") +
-  facet_grid(~.data[[effect_2]]) +
-  scale_color_manual(values = my_palette) +
-#  theme_abyss() +
+  scale_color_manual(values = palette) +
   labs(title = "mtDNAdensity",
-       x = effect_2,
-       y = "mtDNA/nDNA/ tissue weight",
-       color = effect_1)
+       y = NULL,
+       x = "mtDNA/nDNA/ tissue weight",
+       color = groups) +
+  theme_light()
 ```
 
 ```{r}
-#| fig-height: 10
+# Fit the data into a linear model
+sum <- paste(effect_1, effect_2, sep = " + ")
+mult <- paste(effect_1, effect_2, sep = "*")
+rhs <- paste(sum, mult, sep = " + ")
+formulae <- as.formula(paste(variable, rhs, sep = " ~ "))
+lv_mod1 <- lm(formulae, data = data)
 
-outcome <- variable
-vars <- c(effect_1, effect_2)
-
-f <- as.formula(paste(outcome, paste(vars, collapse = " * "), sep = " ~ "))
-
-lv_mod1 <- lm(f, data = data)
-
+# Assess the fit
 summary(lv_mod1)
 report::report(lv_mod1)
 performance::check_model(lv_mod1)
 ```
 
-```         
-```
-
 ```{r}
-library(emmeans)
-
-
-# View the parameters of the model
-lv_mod1 %>%
+lv_mod1_params <- lv_mod1 %>%
   parameters(summary = TRUE) %>%
   as.data.frame()
+
+write.csv(lv_mod1_params, 
+          file = file.path("..",
+                           "Output", 
+                           glue("lmtDNAdensity-{Sys.Date()}-params.csv")),
+          quote = FALSE)
+
 
 # Estimate contrasts between Genotype and Microbiome with BH adjustment
 lv_mod1_contrasts <- lv_mod1 %>%
@@ -133,9 +128,10 @@ lv_mod1_contrasts <- lv_mod1 %>%
 # View the results
 lv_mod1_contrasts
 
-
-# Save the file with the corrected file path
+# Save the .csv file 
 write.csv(lv_mod1_contrasts, 
-          file = glue("C:/Users/Livia/Documents/Data Mito/Notebooks Mito Paper/LM_mitochondrial DNA and Enzymactic/lmtDNAdensity -{Sys.Date()}.csv"),
+          file = file.path("..", 
+                           "Output", 
+                           glue("lmtDNAdensity-{Sys.Date()}.csv")),
           quote = FALSE)
 ```

@@ -1,0 +1,6 @@
+
+	Kruskal-Wallis rank sum test
+
+data:  CI_RCR by Group
+Kruskal-Wallis chi-squared = 8.7692, df = 2, p-value = 0.01247
+

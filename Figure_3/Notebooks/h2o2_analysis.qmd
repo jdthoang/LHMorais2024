@@ -40,15 +40,16 @@ library("emmeans")
 
 ```{r}
 # Specify the file path to your Excel file
-excel_file <- file.path("Data", "GFxSPF_ASO", "H2O2_GFSPF_Livia_1172024_1.xlsx")
+excel_file <- file.path("..", "..", "Data", "GFxSPF_ASO", "H2O2_GFSPF_Livia_1172024_1.xlsx")
 
 # Read the data from the chosen sheet into a data frame
 data <- read_excel(excel_file)
 
 # Specify the column (variable) and the effects we will be working with
 variable = 'ROS'
-effect_1 = 'Condition'
+effect_1 = 'Microbiome'
 effect_2 = 'Genotype'
+effect_3 = "Treatment"
 groups = 'Group'
 
 # Specifying the levels of the factors for plotting
@@ -86,9 +87,20 @@ ggplot(data,
 
 ```{r}
 # Fit the data into a linear model
-effs <- c(effect_1, effect_2)
-formulae <- as.formula(paste(variable, paste(effs, collapse = " * "), sep = " ~ "))
+sum <- paste(effect_1, effect_2, effect_3, sep = " + ")
+mult <- paste(effect_1, effect_2, effect_3, sep = "*")
+rhs <- paste(sum, mult, sep = " + ")
+formulae <- as.formula(paste(variable, rhs, sep = " ~ "))
 lv_mod1 <- lm(formulae, data = data)
+
+# Assess the fit
+summary(lv_mod1)
+report::report(lv_mod1)
+performance::check_model(lv_mod1)
+```
+
+```{r}
+lv_mod1 <- lm(ROS ~ Microbiome + Genotype + Treatment + Microbiome * Genotype * Treatment, data=data)
 
 # Assess the fit
 summary(lv_mod1)
@@ -110,8 +122,8 @@ write.csv(lv_mod1_params,
 
 # Estimate contrasts between Genotype and Microbiome with BH adjustment
 lv_mod1_contrasts <- lv_mod1 %>%
-  estimate_contrasts(
-    contrast = c(effect_1, effect_2),
+estimate_contrasts(
+    contrast = c(effect_1, effect_2, effect_3),
     p_adjust = "BH",
     method = "pairwise"
   )
