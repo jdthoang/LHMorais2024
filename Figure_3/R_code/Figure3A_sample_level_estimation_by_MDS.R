@@ -25,15 +25,11 @@ COUNTS = read.csv(file.path("..", "..", "Data", "Proteomics", "protein_counts.cs
   rownames(COUNTS) = make.unique(COUNTS$symbol, sep = '.')
   COUNTS$symbol = NULL
   COUNTS[is.na(COUNTS)] = 0
+  COUNTS = COUNTS[,c(5:52)]
+  COUNTS = COUNTS[,c(1:16)]
 
-#metadata = read.csv("./metadata.csv", row.names = 'X')
+metadata = read.csv(file.path("..", "..", "Data", "Proteomics", "metadata.csv"), header = T, row.names = 'X')
   
-metadata = data.frame(matrix(nrow = 16, ncol = 2))
-colnames(metadata) = c('id','condition')
-metadata$id = colnames(COUNTS)
-metadata$condition = toupper(substring(metadata$id, 1, nchar(metadata$id)-2))
-group = 'condition'
-
 degs = list()
 index = match(colnames(COUNTS),metadata$id)
 metadata = metadata[index,]
@@ -86,8 +82,8 @@ output_filepath = file.path("..", "Output", "Proteomics", "MDS_plot_with_ellipse
 pdf(output_filepath)
 
 # set plot parameters
-ylab = paste0(mds$axislabel,' 2 (',round(mds$var.explained[2]*100),'%)')
-xlab = paste0(mds$axislabel,' 1 (',round(mds$var.explained[1]*100),'%)')
+ylab = paste0('Dimension 2 (',round(mds$var.explained[2]*100),'%)')
+xlab = paste0('Dimension 1 (',round(mds$var.explained[1]*100),'%)')
 ylim = c(-7.5, 12.5); xlim = c(-12.5, 7.5)
 
 plot(mds$x, mds$y,

@@ -56,7 +56,7 @@ logfcthr = 0.5; pthr = 0.05
 for(i in 1:4){
   # find list of DEGs
   con1 = comp[i,1]; con2 = comp[i,2]
-  res = results(dds, contrast = c('condition',con1, con2), pAdjustMethod ='BH'); res = res[order(res$padj),]
+  res = results(dds, contrast = c('condition',con1, con2), pAdjustMethod ='BH', alpha = 0.05); res = res[order(res$padj),]
   DEGs = res[(res$padj < pthr & !is.na(res$padj)),]
   # find upregulated and downregulated terms
   upreg = rownames(DEGs[DEGs$log2FoldChange > logfcthr,])
@@ -72,11 +72,11 @@ for(i in 1:4){
 # create dataframes to input values
 GOs = unique(c(up_terms$name, down_terms$name)); nGOs = length(GOs); print(nGOs)
 data_up = data.frame("GOs" = rep(GOs, 4), 
-                   "Condition" = rep(paste0(comp[,1],' over ',comp[,2]), each = nGOs),
+                   "Condition" = rep(paste0(comp[,1],'/',comp[,2]), each = nGOs),
                    "GeneRatio" = '', 
                    "p.adjust" = '')
 data_down = data.frame("GOs" = rep(GOs, 4), 
-                     "Condition" = rep(paste0(comp[,1],' over ',comp[,2]), each = nGOs),
+                     "Condition" = rep(paste0(comp[,1],'/',comp[,2]), each = nGOs),
                      "GeneRatio" = '', 
                      "p.adjust" = '')
 
@@ -110,55 +110,36 @@ data_down$GeneRatio = as.numeric(data_down$GeneRatio)
 data_down$p.adjust = as.numeric(data_down$p.adjust)
 data_down$GeneRatio[data_down$GeneRatio == 0] = NA
 
-# log transform q values
+# log transform q values while making downregulated genes negative
 data_up$logq = -log10(data_up$p.adjust)
-data_down$logq = -log10(data_down$p.adjust)
+data_down$logq = log10(data_down$p.adjust)
+data = data_up
+data[data$logq == 0,] = data_down[data$logq == 0,]
 
-# make data square to calculate euclidean distance
-mat_up = data_up %>% 
-  select(-logq, -p.adjust) %>%
-  pivot_wider(names_from = Condition, values_from = GeneRatio) %>% 
-  data.frame()
-mat_up[is.na(mat_up)] = 0
-row.names(mat_up) = mat_up$GOs
-mat_up = mat_up[,-1]
-
-mat_down = data_down %>% 
-  select(-logq, -p.adjust) %>%
-  pivot_wider(names_from = Condition, values_from = GeneRatio) %>% 
-  data.frame()
-mat_down[is.na(mat_down)] = 0
-row.names(mat_down) = mat_down$GOs
-mat_down = mat_down[,-1]
-
-mat = cbind(mat_up, mat_down)
-clust = hclust(dist(mat %>% as.matrix()))
-
-# create dendrogram
-ddgram = as.dendrogram(clust)
-ggtree_plot = ggtree(ddgram)
-
-data_up$Condition = paste0("UP     ",data_up$Condition)
-data_down$Condition = paste0("DOWN     ",data_down$Condition)
-data = rbind(data_up, data_down)
-
-data$GOs = factor(data$GOs, levels = clust$labels[clust$order])
-data$Condition = factor(data$Condition, levels = unique(data$Condition)[c(1,2,3,4,5,6,7,8)])
-
+# clean up data labels
+data$Condition = factor(data$Condition, levels = unique(data$Condition)[c(1:8)])
 data$GOs = gsub('GO_slim_generic.','GO: ',data$GOs)
 data$GOs = gsub('ReactomePathways.','Reactome: ',data$GOs)
 data$GOs = gsub('KEGG_filtered_canonical_pathways.KEGG','KEGG: ',data$GOs)
 data$GOs = gsub('_',' ',data$GOs)
 data$GOs = gsub('/.','',data$GOs)
+data$Condition = gsub('_','-',data$Condition)
+data$Condition = factor(data$Condition, levels = unique(data$Condition))
 
+# plot data as dotplot
 dotplot = ggplot(data = data, aes(x=Condition, y = GOs, color = logq, size = GeneRatio)) + 
-  geom_vline(aes(xintercept = Condition), color = "lightgray", alpha = 0.5) +
-  geom_hline(aes(yintercept = GOs), color = "lightgray", alpha = 0.5) +
+  geom_vline(aes(xintercept = Condition), color = "gray", alpha = 0.5) +
+  geom_hline(aes(yintercept = GOs), color = "gray", alpha = 0.5) +
   geom_point() + 
-  scale_color_viridis_c(name = '-log10(FDR)') + 
+  scale_color_gradient2(name = '-log10(FDR)', low = "darkblue", mid = "lightgrey", high = "red", midpoint = 0) +
+  scale_size_continuous(name = 'GeneRatio', range = c(1, 12)) +
   cowplot::theme_cowplot() + 
   theme(axis.line  = element_blank()) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   ylab('') +
   theme(axis.ticks = element_blank()) +
   scale_y_discrete(position = "right")
+
+filename = ("transcriptomic_pathways_dotplot.svg")
+filepath = file.path("..", "Output", "Transcriptomics", filename)
+ggsave(filepath, units = 'in', width = 13, height = 12)
