@@ -108,14 +108,22 @@ for(i in 1:4){
                      max.overlaps = 50)
   
   # Darkgrey labels
-
+  base_plot = base_plot +
+    geom_label_repel(data = darkgrey_genes,
+                     aes(x = log2FoldChange, y = -log10(padj), label = rownames(darkgrey_genes)),
+                     fill = "white", color = "darkgrey", size = 6, fontface = 'bold',
+                     box.padding = 1, point.padding = 1,
+                     segment.color = 'black',min.segment.length = 0.2, segment.size = 0.5,
+                     direction = "both", ylim = c(0, 0.5),
+                     force = 200, force_pull = 0.05,
+                     max.overlaps = 100)
   
   # Print the final plot
   print(base_plot)
   
   # save volcano plot
-  filetype = '.png'
-  filename = paste0(con1,"_vs_",con2,"_volcano_rm nonsig",filetype)
+  filetype = '.svg'
+  filename = paste0(con1,"_vs_",con2,"_volcano+nonsig",filetype)
   imgpath = file.path("..", "Output", "Proteomics", filename)
   ggsave(imgpath, units = 'in', width = 13, height = 10)
 }

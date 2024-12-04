@@ -14,6 +14,7 @@ if (!require("EnhancedVolcano", quietly = TRUE)) {BiocManager::install("Enhanced
 library("DESeq2") # Used for differential gene expression analysis
 library("RITANdata") 
 library("EnhancedVolcano")
+library("WriteXLS")
 
 # Set the working directory to where this script is located
 script_path = rstudioapi::getSourceEditorContext()$path
@@ -131,8 +132,14 @@ for(i in 1:4){
   print(base_plot)
   
   # save volcano plot
-  filetype = '.png'
-  filename = paste0(con1,"_vs_",con2,"_volcano",filetype)
-  filepath = file.path("..", "Output", "Transcriptomics", filename)
+  filetype = '.svg'
+  filename = paste0(con1,"_vs_",con2,"_volcano")
+  filepath = file.path("..", "Output", "Transcriptomics", paste0(filename,filetype))
   ggsave(filepath, units = 'in', width = 13, height = 10)
+  
+  # save data table
+  res = as.data.frame(res, row.names = rownames(res))
+  res$symbol = rownames(res)
+  filepath = file.path("..", "Output", "Transcriptomics", paste0(filename,'.xlsx'))
+  WriteXLS(as.data.frame(res), filepath)
 }
