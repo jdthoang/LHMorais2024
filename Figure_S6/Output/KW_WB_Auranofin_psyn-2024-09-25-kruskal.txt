@@ -1,6 +1,0 @@
-
-	Kruskal-Wallis rank sum test
-
-data:  ratioWV_psyn by Group
-Kruskal-Wallis chi-squared = 6.2593, df = 2, p-value = 0.04373
-
