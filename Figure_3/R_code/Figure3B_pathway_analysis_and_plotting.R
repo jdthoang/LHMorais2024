@@ -23,7 +23,6 @@ script_path = rstudioapi::getSourceEditorContext()$path
 workdir_path = dirname(script_path)
 setwd(workdir_path)
 
-
 # find files with differentially expressed proteins
 filepath = file.path("..", "..", "Data", "Proteomics")
 files = list.files(path = filepath, 
