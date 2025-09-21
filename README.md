@@ -25,12 +25,4 @@ This repository contains the figure-by-figure analysis and plotting code corresp
   – BioProject page: [PRJNA1181029](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1181029)  
   – SRA Run Selector (per-sample SRR table & “Accession List”): <https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA1181029>
 
-> If proteomics raw files are hosted in PRIDE/MassIVE, add the accession here.  
-> If they’re within the SRA BioProject, note that explicitly and point to the Run Selector.
-
-**Optional helper files (recommended to include in this repo):**
-- `data/external/sra_run_table.tsv` — exported from SRA Run Selector (“RunInfo Table”)
-- `data/external/sra_accessions.txt` — one SRR per line (“Accession List”)
-- `metadata/sample_map.tsv` — maps SRR ▶ sample ▶ condition ▶ figure panel
-
 Cite the code: [![DOI](https://zenodo.org/badge/843606607.svg)](https://doi.org/10.5281/zenodo.14560061)
