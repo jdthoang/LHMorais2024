@@ -25,4 +25,5 @@ This repository contains the figure-by-figure analysis and plotting code corresp
   – BioProject page: [PRJNA1181029](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1181029)  
   – SRA Run Selector (per-sample SRR table & “Accession List”): <https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA1181029>
 
-Cite the code: [![DOI](https://zenodo.org/badge/843606607.svg)](https://doi.org/10.5281/zenodo.14560061)
+## Cite the code
+[![DOI](https://zenodo.org/badge/843606607.svg)](https://doi.org/10.5281/zenodo.14560061)
